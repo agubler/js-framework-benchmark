@@ -1,10 +1,16 @@
 import { findIndex } from '@dojo/framework/shim/array';
+import { uuid } from '@dojo/framework/core/util';
 
 function random(max: number) {
 	return Math.round(Math.random() * 1000) % max;
 }
 
-export interface Data {
+export interface State {
+	key: string;
+	items: Item[];
+}
+
+export interface Item {
 	id: number;
 	label: string;
 }
@@ -68,19 +74,19 @@ const nouns = [
 ];
 
 export class Store {
-	private _data: Data[] = [];
-	private _selected: number | undefined;
+	public state: State[] = [];
+	public selected: number | undefined;
+	public key = uuid();
 	private _id = 1;
+	private _invalidator: any = Object.create(null);
 
-	public get data(): Data[] {
-		return this._data;
+	onUpdate(id: number, key: string, cb: any) {
+		if (!this._invalidator[`${id}-${key}`]) {
+			this._invalidator[`${id}-${key}`] = cb;
+		}
 	}
 
-	public get selected(): number | undefined {
-		return this._selected;
-	}
-
-	private _buildData(count: number = 1000): Data[] {
+	private _buildData(count: number = 1000): Item[] {
 		let data = [];
 		for (let i = 0; i < count; i++) {
 			const adjective = adjectives[random(adjectives.length)];
@@ -94,24 +100,40 @@ export class Store {
 	}
 
 	public updateData(mod: number = 10): void {
-		for (let i = 0; i < this._data.length; i += 10) {
-			const data = this._data[i];
-			this._data[i] = { ...data, label: `${data.label} !!!`};
+		this.state.forEach((data) => {
+			for (let i = 0; i < data.items.length; i += 10) {
+				const item = data.items[i];
+				data.items[i] = { ...data.items[i], label: `${data.items[i].label} !!!`};
+				this._invalidator[`${item.id}-${data.key}`](data.items[i].label);
+			}
+		});
+	}
+
+	public delete(id: number, key: string): void {
+		for (let i = 0; i < this.state.length; i++) {
+			if (this.state[i].key === key) {
+				console.log('here');
+				const idx = findIndex(this.state[i].items, (item) => item.id === id);
+				this.state[i].items.splice(idx, 1);
+				this.state[i].items = [...this.state[i].items];
+				break;
+			}
 		}
 	}
 
-	public delete(id: number): void {
-		const idx = findIndex(this._data, (item) => item.id === id);
-		this._data.splice(idx, 1);
-	}
-
-	public run(): void {
-		this._data = this._buildData();
-		this._selected = undefined;
+	public run(rows = 1000): void {
+		this.state = [{
+			items: this._buildData(rows),
+			key: uuid()
+		}];
+		this.selected = undefined;
 	}
 
 	public add(): void {
-		this._data = [ ...this._data, ...this._buildData() ];
+		this.state.push({
+			items: this._buildData(),
+			key: uuid()
+		});
 	}
 
 	public update(): void {
@@ -119,24 +141,24 @@ export class Store {
 	}
 
 	public select(id: number) {
-		this._selected = id;
+		this.selected = id;
 	}
 
 	public runLots() {
-		this._data = this._buildData(10000);
-		this._selected = undefined;
+		this.run(10000);
 	}
 
 	public clear() {
-		this._data = [];
-		this._selected = undefined;
+		this.state = [];
+		this.selected = undefined;
 	}
 
 	public swapRows() {
-		if (this._data.length > 998) {
-			const row = this._data[1];
-			this._data[1] = this._data[998];
-			this._data[998] = row;
+		if (this.state[0].items.length > 998) {
+			const row = this.state[0].items[1];
+			this.state[0].items[1] = this.state[0].items[998];
+			this.state[0].items[998] = row;
+			this.state[0].items = [...this.state[0].items];
 		}
 	}
 }

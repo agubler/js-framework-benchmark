@@ -1,121 +1,73 @@
-import { DNode } from '@dojo/framework/widget-core/interfaces';
 import { WidgetBase } from '@dojo/framework/widget-core/WidgetBase';
 import { v, w } from '@dojo/framework/widget-core/d';
-import { Row } from './Row';
 import { Buttons, ButtonConfig } from './Buttons';
-import { Store } from  './Store';
-
-let startTime: number;
-let lastMeasure: string | null;
-
-function startMeasure(name: string) {
-	startTime = performance.now();
-	lastMeasure = name;
-}
-
-function stopMeasure() {
-	const last = lastMeasure;
-	if (lastMeasure) {
-		setTimeout(function () {
-			lastMeasure = null;
-			const stop = performance.now();
-			const duration = 0;
-			console.log(`${last} took ${(stop - startTime)}`);
-		}, 0);
-	}
-}
+import { Store } from './Store';
+import { RowHolder } from './RowHolder';
 
 export class App extends WidgetBase {
-	private _store: Store = new Store();
+	private store: Store = new Store();
 
-	private _printDuration() {
-		stopMeasure();
-	}
-
-	protected onElementUpdated() {
-		this._printDuration();
-	}
-
-	protected onElementCreated() {
-		this._printDuration();
-	}
-
-	private _run = () => {
-		startMeasure('run');
-		this._store.run();
+	private run = () => {
+		this.store.run();
 		this.invalidate();
 	}
 
-	private _add = () => {
-		startMeasure('add');
-		this._store.add();
+	private add = () => {
+		this.store.add();
 		this.invalidate();
 	}
 
-	private _update = () => {
-		startMeasure('update');
-		this._store.update();
+	private update = () => {
+		this.store.update();
+	}
+
+	private select = (id: number) => {
+		this.store.select(id);
 		this.invalidate();
 	}
 
-	private _select = (id: number) => {
-		startMeasure('select');
-		this._store.select(id);
+	private del = (id: number, key: string) => {
+		this.store.delete(id, key);
 		this.invalidate();
 	}
 
-	private _delete = (id: number) => {
-		startMeasure('delete');
-		this._store.delete(id);
+	private runLots = () => {
+		this.store.runLots();
 		this.invalidate();
 	}
 
-	private _runLots = () => {
-		startMeasure('runLots');
-		this._store.runLots();
+	private clear = () => {
+		this.store.clear();
 		this.invalidate();
 	}
 
-	private _clear = () => {
-		startMeasure('clear');
-		this._store.clear();
-		this.invalidate();
-	}
-
-	private _swapRows = () => {
-		startMeasure('swapRows');
-		this._store.swapRows();
+	private swapRows = () => {
+		this.store.swapRows();
 		this.invalidate();
 	}
 
 	private _buttonConfigs: ButtonConfig[] = [
-		{ id: 'run', label: 'Create 1,000 rows', onClick: this._run },
-		{ id: 'runlots', label: 'Create 10,000 rows', onClick: this._runLots },
-		{ id: 'add', label: 'Append 1,000 rows', onClick: this._add },
-		{ id: 'update', label: 'Update every 10th row', onClick: this._update },
-		{ id: 'clear', label: 'Clear', onClick: this._clear },
-		{ id: 'swaprows', label: 'Swap Rows', onClick: this._swapRows }
+		{ id: 'run', label: 'Create 1,000 rows', onClick: this.run },
+		{ id: 'runlots', label: 'Create 10,000 rows', onClick: this.runLots },
+		{ id: 'add', label: 'Append 1,000 rows', onClick: this.add },
+		{ id: 'update', label: 'Update every 10th row', onClick: this.update },
+		{ id: 'clear', label: 'Clear', onClick: this.clear },
+		{ id: 'swaprows', label: 'Swap Rows', onClick: this.swapRows }
 	];
 
-	protected render (): DNode {
-		const { _run, _add, _update, _select, _delete, _runLots, _clear, _swapRows, _store } = this;
-		const rows = _store.data.map(({ id, label }, index) => {
-			return w(Row, {
-				id,
-				key: id,
-				label,
-				onRowSelected: _select,
-				onRowDeleted: _delete,
-				selected: id === _store.selected
-			});
-		});
+	protected render() {
+		const { select, del, store } = this;
 
-		return v('div', { key: 'root', classes: [ 'container' ] }, [
+		const holders = store.state.map(({key, items}) =>
+			w(RowHolder, { key, items, del, select, store, selected: store.selected })
+		);
+
+		return v('div', { key: 'root', classes: ['container'] }, [
 			w(Buttons, { buttonConfigs: this._buttonConfigs }),
-			v('table', { classes: [ 'table', 'table-hover', 'table-striped', 'test-data' ] }, [
-				v('tbody', rows)
+			v('table', { classes: ['table', 'table-hover', 'table-striped', 'test-data'] }, [
+				v('tbody', holders)
 			]),
-			v('span', { classes: [ 'preloadicon', 'glyphicon', 'glyphicon-remove' ] })
+			v('span', { classes: ['preloadicon', 'glyphicon', 'glyphicon-remove'] })
 		]);
 	}
 }
