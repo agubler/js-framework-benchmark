@@ -1,4 +1,6 @@
-import { findIndex } from '@dojo/shim/array';
+import { Destroyable } from '@dojo/framework/core/Destroyable';
+import { WidgetMetaProperties, MetaBase, SupportedClassName } from '@dojo/framework/widget-core/interfaces';
+import { findIndex } from '@dojo/framework/shim/array';
 
 function random(max: number) {
 	return Math.round(Math.random() * 1000) % max;
@@ -67,10 +69,16 @@ const nouns = [
 	'keyboard'
 ];
 
-export class Store {
+export class Store extends Destroyable implements MetaBase {
+	private _invalidator: any;
 	private _data: Data[] = [];
 	private _selected: number | undefined;
 	private _id = 1;
+
+	constructor(properties: WidgetMetaProperties) {
+		super();
+		this._invalidator = properties.invalidate;
+	}
 
 	public get data(): Data[] {
 		return this._data;
@@ -93,50 +101,59 @@ export class Store {
 		return data;
 	}
 
-	public updateData(mod: number = 10): void {
+	public updateData = (mod: number = 10) => {
 		for (let i = 0; i < this._data.length; i += 10) {
 			const data = this._data[i];
 			this._data[i] = { ...data, label: `${data.label} !!!`};
 		}
+		this._invalidator();
 	}
 
-	public delete(id: number): void {
+	public del = (id: number) => {
 		const idx = findIndex(this._data, (item) => item.id === id);
 		this._data.splice(idx, 1);
+		this._invalidator();
 	}
 
-	public run(): void {
+	public run = (): void => {
 		this._data = this._buildData();
 		this._selected = undefined;
+		this._invalidator();
 	}
 
-	public add(): void {
+	public add = (): void => {
 		this._data = [ ...this._data, ...this._buildData() ];
+		this._invalidator();
 	}
 
-	public update(): void {
+	public update = (): void => {
 		this.updateData();
+		this._invalidator();
 	}
 
-	public select(id: number) {
+	public select = (id: number) => {
 		this._selected = id;
+		this._invalidator();
 	}
 
-	public runLots() {
+	public runLots = () => {
 		this._data = this._buildData(10000);
 		this._selected = undefined;
+		this._invalidator();
 	}
 
-	public clear() {
+	public clear = () => {
 		this._data = [];
 		this._selected = undefined;
+		this._invalidator();
 	}
 
-	public swapRows() {
+	public swapRows = () => {
 		if (this._data.length > 998) {
 			const row = this._data[1];
 			this._data[1] = this._data[998];
 			this._data[998] = row;
+			this._invalidator();
 		}
 	}
 }

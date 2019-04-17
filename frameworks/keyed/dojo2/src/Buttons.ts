@@ -1,32 +1,29 @@
-import { WidgetBase } from '@dojo/widget-core/WidgetBase';
-import { v, w } from '@dojo/widget-core/d';
-import { WidgetProperties, DNode } from '@dojo/widget-core/interfaces';
+import { widget } from '@dojo/framework/widget-core/WidgetBase';
+import { v, w } from '@dojo/framework/widget-core/d';
 import { Button } from './Button';
 
 export interface ButtonConfig {
 	id: string;
 	label: string;
 	onClick: () => void;
+	key: string | number;
 }
 
 export interface ButtonsProperties {
 	buttonConfigs: ButtonConfig[];
 }
 
-export class Buttons extends WidgetBase<ButtonsProperties> {
+export const Buttons = widget<ButtonsProperties>(function Buttons({ properties }) {
+	const { buttonConfigs } = properties;
 
-	protected render(): DNode {
-		const { buttonConfigs } = this.properties;
-
-		return v('div', { classes: [ 'jumbotron' ] }, [
-			v('div', { classes: [ 'row' ] }, [
-				v('div', { classes: [ 'col-md-6' ] }, [
-					v('h1', ['Dojo2 v0.2.0'])
-				]),
-				v('div', { classes: [ 'col-md-6' ] }, buttonConfigs.map(({ id, label, onClick }) => {
-					return w(Button, { key: id, id, label, onClick });
-				}))
-			])
-		]);
-	}
-}
+	return v('div', { classes: [ 'jumbotron' ] }, [
+		v('div', { classes: [ 'row' ] }, [
+			v('div', { classes: [ 'col-md-6' ] }, [
+				v('h1', ['Dojo v5.0.0'])
+			]),
+			v('div', { classes: [ 'col-md-6' ] }, buttonConfigs.map(({ id, label, onClick }) => {
+				return w(Button, { key: id, id, label, onClick });
+			}))
+		])
+	]);
+}, true);
