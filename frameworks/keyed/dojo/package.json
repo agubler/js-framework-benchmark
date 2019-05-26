@@ -1,8 +1,8 @@
 {
-  "name": "dojo2-rc-keyed",
+  "name": "dojo-rc-keyed",
   "version": "1.0.0",
   "js-framework-benchmark": {
-    "frameworkVersionFromPackage": "@dojo/framework",
+    "frameworkVersionFromPackage": "@dojo/cli-build-app",
     "customURL": "/output/dist"
   },
   "scripts": {
