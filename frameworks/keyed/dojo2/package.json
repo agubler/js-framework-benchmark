@@ -2,22 +2,36 @@
   "name": "dojo2-rc-keyed",
   "version": "1.0.0",
   "js-framework-benchmark": {
-    "frameworkVersionFromPackage": "@dojo/core",
+    "frameworkVersionFromPackage": "@dojo/framework",
     "customURL": "/output/dist"
   },
   "scripts": {
-    "build-prod": "./node_modules/.bin/dojo build"
+    "build-prod": "./node_modules/.bin/dojo build -m dev",
+    "precommit": "lint-staged",
+    "prettier": "prettier --write \"{docs,src,tests}/**/*.{ts,tsx,md}\""
   },
   "dependencies": {
-    "@dojo/core": "2.0.0",
-    "@dojo/has": "2.0.0",
-    "@dojo/i18n": "2.0.0",
-    "@dojo/shim": "2.0.0",
-    "@dojo/widget-core": "2.0.7"
+    "@dojo/framework": "./dojo-framework-6.0.0-alpha.1.tgz"
   },
   "devDependencies": {
-    "@dojo/cli": "3.0.0",
-    "@dojo/cli-build-app": "3.0.0",
-    "typescript": "2.9.2"
+    "@dojo/cli": "^5.0.0",
+    "@dojo/cli-build-app": "6.0.0-alpha.1",
+    "husky": "~0.14.3",
+    "lint-staged": "6.0.0",
+    "prettier": "1.17.0",
+    "typescript": "3.4.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 4,
+    "useTabs": true,
+    "printWidth": 120,
+    "arrowParens": "always"
   }
 }

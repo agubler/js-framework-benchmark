@@ -1,12 +1,9 @@
-import { findIndex } from '@dojo/shim/array';
+import Map from '@dojo/framework/shim/Map';
+import { create } from '@dojo/framework/widget-core/tsx';
+import { invalidator as vdomInvalidator } from '@dojo/framework/widget-core/middleware/core';
 
 function random(max: number) {
 	return Math.round(Math.random() * 1000) % max;
-}
-
-export interface Data {
-	id: number;
-	label: string;
 }
 
 const adjectives = [
@@ -37,19 +34,7 @@ const adjectives = [
 	'fancy'
 ];
 
-const colours = [
-	'red',
-	'yellow',
-	'blue',
-	'green',
-	'pink',
-	'brown',
-	'purple',
-	'brown',
-	'white',
-	'black',
-	'orange'
-];
+const colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'];
 
 const nouns = [
 	'table',
@@ -67,76 +52,101 @@ const nouns = [
 	'keyboard'
 ];
 
-export class Store {
-	private _data: Data[] = [];
-	private _selected: number | undefined;
-	private _id = 1;
+const factory = create({ vdomInvalidator });
 
-	public get data(): Data[] {
-		return this._data;
-	}
+let dataMap = new Map();
+let selected: string | undefined;
+let rowInvalidatorMap = new Map();
+let labelInvalidatorMap = new Map();
+let id = 1;
+let keys: string[] = [];
 
-	public get selected(): number | undefined {
-		return this._selected;
+function buildData(count: number = 1000, reset = true) {
+	if (reset) {
+		rowInvalidatorMap.clear();
+		labelInvalidatorMap.clear();
+		dataMap.clear();
 	}
-
-	private _buildData(count: number = 1000): Data[] {
-		let data = [];
-		for (let i = 0; i < count; i++) {
-			const adjective = adjectives[random(adjectives.length)];
-			const colour = colours[random(colours.length)];
-			const noun = nouns[random(nouns.length)];
-			const label = `${adjective} ${colour} ${noun}`;
-			data.push({id: this._id, label });
-			this._id++;
-		}
-		return data;
+	for (let i = 0; i < count; i++) {
+		const adjective = adjectives[random(adjectives.length)];
+		const colour = colours[random(colours.length)];
+		const noun = nouns[random(nouns.length)];
+		const label = `${adjective} ${colour} ${noun}`;
+		dataMap.set(id, { id, label });
+		id++;
 	}
-
-	public updateData(mod: number = 10): void {
-		for (let i = 0; i < this._data.length; i += 10) {
-			const data = this._data[i];
-			this._data[i] = { ...data, label: `${data.label} !!!`};
-		}
-	}
-
-	public delete(id: number): void {
-		const idx = findIndex(this._data, (item) => item.id === id);
-		this._data.splice(idx, 1);
-	}
-
-	public run(): void {
-		this._data = this._buildData();
-		this._selected = undefined;
-	}
-
-	public add(): void {
-		this._data = [ ...this._data, ...this._buildData() ];
-	}
-
-	public update(): void {
-		this.updateData();
-	}
-
-	public select(id: number) {
-		this._selected = id;
-	}
-
-	public runLots() {
-		this._data = this._buildData(10000);
-		this._selected = undefined;
-	}
-
-	public clear() {
-		this._data = [];
-		this._selected = undefined;
-	}
-
-	public swapRows() {
-		if (this._data.length > 998) {
-			const row = this._data[1];
-			this._data[1] = this._data[998];
-			this._data[998] = row;
-		}
-	}
+	keys = Array.from(dataMap.keys());
 }
+
+export default factory(({ middleware: { vdomInvalidator: invalidator } }) => {
+	return {
+		get(id: string) {
+			labelInvalidatorMap.set(id, invalidator);
+			return dataMap.get(id);
+		},
+		getId(id: string) {
+			rowInvalidatorMap.set(id, invalidator);
+			const data = dataMap.get(id);
+			if (data) {
+				return data.id;
+			}
+		},
+		getIds() {
+			return keys;
+		},
+		isSelected(id: string) {
+			return id === selected;
+		},
+		run(count = 1000) {
+			buildData(count);
+			invalidator();
+		},
+		add() {
+			buildData(1000, false);
+			invalidator();
+		},
+		update() {
+			const ids = Array.from(dataMap.keys());
+			for (let i = 0; i < ids.length; i += 10) {
+				const item = dataMap.get(ids[i]);
+				dataMap.set(ids[i], { ...item, label: `${item.label} !!!` });
+				labelInvalidatorMap.get(ids[i])();
+			}
+		},
+		swap() {
+			const temp = dataMap.get(2);
+			dataMap.set(2, dataMap.get(999));
+			dataMap.set(999, temp);
+			rowInvalidatorMap.get(2)();
+			rowInvalidatorMap.get(999)();
+		},
+		clear() {
+			dataMap.clear();
+			keys = [];
+			selected = undefined;
+			rowInvalidatorMap.clear();
+			labelInvalidatorMap.clear();
+			invalidator();
+		},
+		del(id: string) {
+			dataMap.delete(id);
+			rowInvalidatorMap.get(id)();
+			if (id === selected) {
+				selected = undefined;
+			}
+			rowInvalidatorMap.delete(id);
+			labelInvalidatorMap.delete(id);
+		},
+		select(id: string) {
+			dataMap.set(selected, { ...dataMap.get(selected), selected: false });
+			selected && rowInvalidatorMap.get(selected)();
+			if (selected !== id) {
+				dataMap.set(id, { ...dataMap.get(id), selected: true });
+				rowInvalidatorMap.get(id)();
+				selected = id;
+			} else {
+				selected = undefined;
+			}
+		}
+	};
+});
