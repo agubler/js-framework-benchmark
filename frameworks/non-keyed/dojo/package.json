@@ -1,0 +1,37 @@
+{
+  "name": "dojo-rc-non-keyed",
+  "version": "1.0.0",
+  "js-framework-benchmark": {
+    "frameworkVersionFromPackage": "@dojo/cli-build-app",
+    "customURL": "/output/dist"
+  },
+  "scripts": {
+    "build-prod": "./node_modules/.bin/dojo build -m dev",
+    "precommit": "lint-staged",
+    "prettier": "prettier --write \"{docs,src,tests}/**/*.{ts,tsx,md}\""
+  },
+  "dependencies": {
+    "@dojo/framework": "./dojo-framework-6.0.0-alpha.1.tgz"
+  },
+  "devDependencies": {
+    "@dojo/cli": "^5.0.0",
+    "@dojo/cli-build-app": "6.0.0-alpha.1",
+    "husky": "~0.14.3",
+    "lint-staged": "6.0.0",
+    "prettier": "1.17.0",
+    "typescript": "3.4.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 4,
+    "useTabs": true,
+    "printWidth": 120,
+    "arrowParens": "always"
+  }
+}
