@@ -1,4 +1,5 @@
-import { create, tsx } from '@dojo/framework/widget-core/tsx';
+import { create } from '@dojo/framework/widget-core/tsx';
+import { v } from '@dojo/framework/widget-core/d';
 import { Row } from './Row';
 import { Buttons, ButtonConfig } from './Buttons';
 import store from './store';
@@ -18,18 +19,14 @@ export const App = createWidget(({ middleware: { store } }) => {
 	let rows: any[] = [];
 	for (let i = 0; i < ids.length; i++) {
 		const id = ids[i];
-		rows.push(<Row id={id} key={id} />);
+		rows.push(Row({ id, key: id }));
 	}
 
-	return (
-		<div key="root" classes={['container']}>
-			<Buttons buttonConfigs={buttonConfigs} />
-			<table classes={['table', 'table-hover', 'table-striped', 'test-data']}>
-				<tbody>{rows}</tbody>
-			</table>
-			<span classes={['preloadicon', 'glyphicon', 'glyphicon-remove']} />
-		</div>
-	);
+	return v('div', { classes: ['container'] }, [
+		Buttons({ buttonConfigs }),
+		v('table', { classes: ['table', 'table-hover', 'table-striped', 'test-data'] }, [v('tbody', rows)]),
+		v('span', { classes: ['preloadicon', 'glyphicon', 'glyphicon-remove'] })
+	]);
 });
 
 export default App;

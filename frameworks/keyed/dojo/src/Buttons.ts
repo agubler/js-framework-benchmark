@@ -1,4 +1,5 @@
-import { create, tsx } from '@dojo/framework/widget-core/tsx';
+import { create } from '@dojo/framework/widget-core/tsx';
+import { v } from '@dojo/framework/widget-core/d';
 import { Button } from './Button';
 
 export interface ButtonConfig {
@@ -16,18 +17,10 @@ const createWidget = create().properties<ButtonsProperties>();
 export const Buttons = createWidget(({ properties }) => {
 	const { buttonConfigs } = properties;
 
-	return (
-		<div classes={['jumbotron']}>
-			<div classes={['row']}>
-				<div classes={['col-md-6']}>
-					<h1>Dojo v5.0.0</h1>
-				</div>
-				<div classes={['col-md-6']}>
-					{buttonConfigs.map((config) => (
-						<Button {...config} />
-					))}
-				</div>
-			</div>
-		</div>
-	);
+	return v('div', { classes: ['jumbotron'] }, [
+		v('div', { classes: ['row'] }, [
+			v('div', { classes: ['col-md-6'] }, [v('h1', ['Dojo Keyed'])]),
+			v('div', { classes: 'col-md-6' }, buttonConfigs.map((config) => Button({ ...config })))
+		])
+	]);
 });

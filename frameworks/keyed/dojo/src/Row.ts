@@ -1,4 +1,5 @@
-import { create, tsx } from '@dojo/framework/widget-core/tsx';
+import { create } from '@dojo/framework/widget-core/tsx';
+import { v } from '@dojo/framework/widget-core/d';
 import store from './store';
 
 export interface RowProperties {
@@ -13,7 +14,7 @@ const Label = createWidget(({ properties, middleware: { store } }) => {
 	const onClick = () => {
 		store.select(id);
 	};
-	return <a onclick={onClick}>{data.label}</a>;
+	return v('a', { onclick: onClick }, [data.label]);
 });
 
 export const Row = createWidget(({ properties, middleware: { store } }) => {
@@ -25,20 +26,16 @@ export const Row = createWidget(({ properties, middleware: { store } }) => {
 	const onDelete = () => {
 		store.del(id);
 	};
-	return (
-		<tr key={dataId} classes={[store.isSelected(id) && 'danger']}>
-			<td classes={['col-md-1']}>{`${dataId}`}</td>
-			<td classes={['col-md-4']}>
-				<Label id={id} />
-			</td>
-			<td classes={['col-md-1']}>
-				<a onclick={onDelete}>
-					<span aria-hidden={true} classes={['glyphicon', 'glyphicon-remove']} />
-				</a>
-			</td>
-			<td classes={['col-md-6']} />
-		</tr>
-	);
+	return v('tr', { key: dataId, classes: [store.isSelected(id) && 'danger'] }, [
+		v('td', { classes: ['col-md-1'] }, [`${dataId}`]),
+		v('td', { classes: ['col-md-4'] }, [Label({ id })]),
+		v('td', { classes: ['col-md-1'] }, [
+			v('a', { onclick: onDelete }, [
+				v('span', { 'aria-hidden': true, classes: ['glyphicon', 'glyphicon-remove'] })
+			])
+		]),
+		v('td', { classes: ['col-md-6'] })
+	]);
 });
 
 export default Row;
