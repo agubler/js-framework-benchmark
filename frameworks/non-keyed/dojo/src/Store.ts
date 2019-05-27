@@ -114,11 +114,13 @@ export default factory(({ middleware: { vdomInvalidator: invalidator } }) => {
 			}
 		},
 		swap() {
-			const temp = dataMap.get(2);
-			dataMap.set(2, dataMap.get(999));
-			dataMap.set(999, temp);
-			rowInvalidatorMap.get(2)();
-			rowInvalidatorMap.get(999)();
+			if (keys.length > 999) {
+				const temp = dataMap.get(keys[1]);
+				dataMap.set(keys[1], dataMap.get(keys[998]));
+				dataMap.set(keys[998], temp);
+				rowInvalidatorMap.get(keys[1])();
+				rowInvalidatorMap.get(keys[998])();
+			}
 		},
 		clear() {
 			dataMap.clear();
