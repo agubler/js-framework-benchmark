@@ -1,0 +1,8 @@
+{
+	"build-app": {
+		"build-time-render": {
+			"root": "app"
+		}
+	},
+	"create-app": {}
+}
